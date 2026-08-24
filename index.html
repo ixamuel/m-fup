@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panasonic Meeting Follow-Up Generator</title>
+<style>
+:root{
+  --navy:#003b71; --blue:#0066b3; --light:#f4f7fa; --line:#d9e1e8;
+  --text:#17212b; --muted:#667482; --green:#3f8f5b; --danger:#b33a3a;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#eef2f6;color:var(--text)}
+header{background:linear-gradient(110deg,#002b55,#004a87);color:white;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px #0002}
+.brand{display:flex;align-items:center;gap:16px}.logo{font-weight:800;font-size:25px;letter-spacing:-1px}.logo small{display:block;font-size:10px;letter-spacing:1px;text-align:center}.divider{height:38px;width:1px;background:#ffffff55}
+header h1{font-size:19px;margin:0} header p{margin:3px 0 0;font-size:12px;color:#d9e9f7}
+.app{display:grid;grid-template-columns:minmax(390px,46%) 1fr;gap:18px;max-width:1500px;margin:18px auto;padding:0 18px}
+.panel,.preview{background:white;border:1px solid var(--line);border-radius:10px;box-shadow:0 3px 14px #193b5d12}
+.panel{overflow:hidden}.section{padding:17px 18px;border-bottom:1px solid var(--line)}.section:last-child{border:0}
+.section h2{font-size:13px;margin:0 0 12px;color:#143a60;letter-spacing:.2px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{grid-template-columns:1fr 1fr 1fr}
+label{display:block;font-size:11px;color:#536270;font-weight:600;margin:0 0 5px}
+input,select,textarea{width:100%;border:1px solid #cbd6df;border-radius:6px;padding:9px 10px;font:inherit;font-size:13px;background:#fff;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#3987c5;box-shadow:0 0 0 2px #3987c522}
+textarea{min-height:65px;resize:vertical}
+.full{grid-column:1/-1}.toggleline{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#566}
+.switch{position:relative;width:38px;height:21px;display:inline-block}.switch input{display:none}
+.slider{position:absolute;inset:0;background:#b8c3cc;border-radius:20px;cursor:pointer}.slider:before{content:"";position:absolute;width:17px;height:17px;left:2px;top:2px;background:white;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:#1671bd}.switch input:checked+.slider:before{transform:translateX(17px)}
+.rowhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.btn{border:1px solid #c7d2dc;background:white;color:#18456c;padding:7px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px}
+.btn:hover{background:#f2f7fb}.btn.primary{background:#063d70;color:white;border-color:#063d70}.btn.primary:hover{background:#07508e}
+.btn.danger{color:var(--danger)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.action{display:grid;grid-template-columns:minmax(0,1fr) 126px 32px;gap:6px;margin-bottom:7px}.action .btn{padding:5px 8px}.suggestions{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.suggestion{border:1px solid #cbdce9;background:#f4f9fd;color:#174c76;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer}.suggestion:hover{background:#e4f1fa;border-color:#76acd0}
+.reply-fields{display:grid;grid-template-columns:minmax(0,1fr) 165px;gap:10px}.prompt-card{margin-top:14px;border:1px solid #c8dfef;border-radius:8px;background:#f1f8fd;padding:12px}.prompt-card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}.prompt-card-title{font-size:12px;font-weight:700;color:#174c76}.prompt-preview{margin:0;padding:11px 12px;border:1px solid #d7e5ee;border-radius:6px;background:#fff;color:#304454;font:12px/1.55 Consolas,"Courier New",monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+.attachments{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.chip{background:#f1f6fa;border:1px solid #d2dee7;border-radius:18px;padding:6px 9px;font-size:11px}
+.chip button{border:0;background:none;cursor:pointer;color:#71808e;margin-left:4px}
+.bottom{padding:14px 18px;background:#f8fafc}.generate{width:100%;padding:12px;font-size:14px}
+.preview{padding:0;overflow:hidden;min-height:760px}.toolbar{padding:12px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.tabs{display:flex;gap:2px;padding:3px;border:1px solid #c8d5df;background:#f2f6f9;border-radius:999px}.tab{padding:7px 15px;border:0;background:transparent;border-radius:999px;font-weight:700;cursor:pointer;color:#496477}.tab.active{background:#0964a9;color:white;box-shadow:0 1px 3px #003b7140}
+.tools{display:flex;gap:7px}.email{padding:28px 34px;max-width:900px;margin:auto}.subject{font-size:20px;font-weight:700;color:#142c43;padding-bottom:12px;border-bottom:2px solid #0866ac;margin-bottom:20px}
+.email p{font-size:11pt;line-height:1.6;margin:0 0 13px}.email ul{padding-left:22px}.email li{margin:7px 0;font-size:11pt}
+.attach-list{margin:10px 0 18px}.table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:11pt}.table th{background:#3e8d59;color:#fff;padding:9px;text-align:left}.table th:last-child{background:#073d70}.table td{border:1px solid #dbe3e9;padding:8px;vertical-align:top}.table td:first-child{background:#f5fbf6}
+.badge{display:inline-block;background:#eaf3fa;color:#0b5c94;border-radius:12px;padding:3px 8px;font-size:11px;font-weight:700}
+.placeholder{color:#c22d2d;font-weight:700}
+.signature{margin-top:25px;padding-top:14px;border-top:1px solid #ccd7df}.signature strong{color:#063d70;font-size:16px}.signature small{display:block;color:#5c6975;line-height:1.5}
+.tip{margin-top:18px;background:#eef7ff;border:1px solid #cde3f6;border-radius:7px;padding:10px;font-size:11px;color:#41627c}
+.toast{position:fixed;right:20px;bottom:20px;background:#173f63;color:white;padding:10px 14px;border-radius:7px;box-shadow:0 4px 15px #0003;display:none}
+
+/* Refined workspace layout */
+body{background:#f5f7fa;color:#21313f}
+header{padding:15px 30px;background:#fff;color:#073d70;border-bottom:1px solid #dce5ec;box-shadow:none}
+.logo{font-size:24px;color:#073d70}.logo small{color:#3180b9}.divider{background:#cfdae4;height:34px}header h1{font-size:18px;color:#173f63}header p{color:#71808e;font-size:12px}
+.app{grid-template-columns:minmax(410px,45%) minmax(520px,1fr);gap:22px;max-width:1560px;margin:24px auto;padding:0 24px}
+.panel{background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible}
+.section{padding:18px 20px;margin-bottom:12px;background:#fff;border:1px solid #dfe7ee;border-radius:12px;box-shadow:0 2px 8px #193b5d08}.section:last-child{border:1px solid #dfe7ee}
+.section h2{font-size:12px;color:#174c76;letter-spacing:.55px;margin-bottom:13px}.grid{gap:12px}
+label{font-size:11px;color:#607180;margin-bottom:6px}input,select,textarea{border-color:#d6e0e8;border-radius:7px;padding:10px 11px;color:#223645}input:hover,select:hover,textarea:hover{border-color:#9fbdcf}textarea{min-height:70px}
+.toggleline{margin-top:11px;color:#647584}.rowhead{margin-bottom:10px}.rowhead .btn{padding:6px 9px}.btn{border-color:#d6e0e8;border-radius:7px;padding:8px 11px;transition:background .15s,border-color .15s,transform .15s}.btn:hover{transform:translateY(-1px);background:#f2f7fb}.btn.primary{background:#07528b;border-color:#07528b}.btn.primary:hover{background:#063f6d}
+.suggestions{gap:7px;margin-bottom:12px}.suggestion{padding:6px 9px;background:#f7fafc;border-color:#d8e5ed;color:#285a7e}.attachments{margin-top:8px}.chip{background:#f7fafc;border-color:#d8e5ed;padding:7px 10px}
+.action{grid-template-columns:minmax(0,1fr) 122px 32px;gap:7px;margin-bottom:8px}.action input{padding:8px 9px}.bottom{padding:0;background:transparent}.generate{border-radius:9px;padding:13px;box-shadow:0 5px 12px #063d7024}
+.preview{position:sticky;top:18px;align-self:start;max-height:calc(100vh - 36px);overflow:auto;border:1px solid #dce5ec;border-radius:14px;box-shadow:0 7px 24px #193b5d12;background:#fff}.toolbar{position:sticky;top:0;z-index:1;padding:13px 16px;background:#fff;border-bottom:1px solid #e2e9ef}.tabs{background:#f3f6f8;border-color:#dce5ec}.tab{padding:7px 16px}.tools{gap:8px}.email{padding:32px 38px}.subject{font-size:21px;color:#163d5d;border-bottom:2px solid #2a85bc;margin-bottom:22px}.email p{line-height:1.7;margin-bottom:14px}.tip{margin-top:22px;background:#f2f8fc;border-color:#d8e9f4;color:#527087;padding:11px 12px}.prompt-card{background:#f6fbfe;border-color:#d5e7f2;box-shadow:inset 0 1px #fff}.prompt-preview{background:#fff;border-color:#e0e9ef}.prompt-card-head{margin-bottom:9px}
+
+/* Soft glass surfaces */
+body{background:radial-gradient(circle at 8% 6%,#d9efff 0,transparent 28%),radial-gradient(circle at 93% 18%,#dcefe8 0,transparent 27%),linear-gradient(135deg,#eef5f9 0%,#f7f9fc 48%,#edf4f8 100%)}
+header{background:rgba(255,255,255,.68);border-color:rgba(204,220,232,.8);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.section{background:rgba(255,255,255,.64);border-color:rgba(255,255,255,.9);box-shadow:0 10px 28px #174c7610;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+input,select,textarea{background:rgba(255,255,255,.74);border-color:rgba(201,216,228,.85)}
+.preview{background:rgba(255,255,255,.7);border-color:rgba(255,255,255,.9);box-shadow:0 14px 34px #174c7617;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.toolbar{background:rgba(255,255,255,.64);border-color:rgba(216,228,237,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.tabs{background:rgba(241,247,251,.78);border-color:rgba(211,225,235,.9)}.suggestion,.chip{background:rgba(249,252,254,.7)}.prompt-card{background:rgba(239,248,253,.68)}.prompt-preview{background:rgba(255,255,255,.72)}.tip{background:rgba(239,248,253,.72)}
+@media(max-width:950px){.app{grid-template-columns:1fr}.preview{min-height:auto}.grid3{grid-template-columns:1fr}.email{padding:22px}.toolbar{flex-wrap:wrap;gap:10px}.actions,.reply-fields{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="logo">Panasonic<small>INDUSTRY</small></div><div class="divider"></div>
+    <div><h1>Meeting Follow-Up Email Generator</h1><p>BDM · Customer Communication · Passive Components</p></div>
+  </div>
+  <div>✉ BDM</div>
+</header>
+
+<div class="app">
+<section class="panel">
+  <div class="section">
+    <h2>1. MEETING INFORMATION</h2>
+    <div class="grid grid3">
+      <div><label>Meeting date *</label><input id="date" type="date"></div>
+      <div><label>Customer name *</label><input id="customerName" placeholder="Customer company"></div>
+      <div><label>Location</label><input id="location" placeholder="Customer site"></div>
+      <div><label>Distributor (optional)</label><input id="distributor" placeholder="Distributor name"></div>
+    </div>
+    <div class="toggleline"><label class="switch"><input id="teams" type="checkbox"><span class="slider"></span></label> Teams / online meeting</div>
+  </div>
+
+  <div class="section">
+    <h2>2. RECIPIENTS</h2>
+    <label>Customer names (one per line or comma-separated)</label>
+    <textarea id="recipients" placeholder="Max Mustermann&#10;Jane Doe"></textarea>
+  </div>
+
+  <div class="section">
+    <div class="rowhead"><h2>3. ATTACHMENTS / MATERIAL</h2><button class="btn" onclick="addAttachment()">＋ Add</button></div>
+    <div class="suggestions"><button class="suggestion" onclick="addAttachment('Datasheet')">Datasheet</button><button class="suggestion" onclick="addAttachment('Application note')">Application note</button><button class="suggestion" onclick="addAttachment('Product roadmap')">Product roadmap</button><button class="suggestion" onclick="addAttachment('Presentation')">Presentation</button><button class="suggestion" onclick="addAttachment('Qualification pack')">Qualification pack</button><button class="suggestion" onclick="addAttachment('Sample information')">Sample information</button></div>
+    <div id="attachments" class="attachments"></div>
+  </div>
+
+  <div class="section">
+    <h2>4. ACTION POINTS</h2>
+    <div class="actions">
+      <div><div class="rowhead"><label>Your next steps</label><button class="btn" onclick="addAction('cust')">＋</button></div><div class="suggestions"><button class="suggestion" onclick="addSuggestion('cust','Share current BOM / AVL')">Share current BOM / AVL</button><button class="suggestion" onclick="addSuggestion('cust','Confirm annual volume')">Confirm annual volume</button><button class="suggestion" onclick="addSuggestion('cust','Confirm sample quantity and ship-to')">Confirm sample qty and ship-to</button><button class="suggestion" onclick="addSuggestion('cust','Introduce the design owner')">Introduce the design owner</button><button class="suggestion" onclick="addSuggestion('cust','Share RFQ timeline')">Share RFQ timeline</button><button class="suggestion" onclick="addSuggestion('cust','Propose two slots for the next meeting')">Propose two meeting slots</button></div><div id="custActions"></div></div>
+      <div><div class="rowhead"><label>We will</label><button class="btn" onclick="addAction('pan')">＋</button></div><div class="suggestions"><button class="suggestion" onclick="addSuggestion('pan','Send datasheet and application note')">Send datasheet &amp; application note</button><button class="suggestion" onclick="addSuggestion('pan','Check lead time and MOQ')">Check lead time and MOQ</button><button class="suggestion" onclick="addSuggestion('pan','Prepare quotation')">Prepare quotation</button><button class="suggestion" onclick="addSuggestion('pan','Share sample options')">Share sample options</button><button class="suggestion" onclick="addSuggestion('pan','Send AEC-Q / qualification pack')">Send AEC-Q / qualification pack</button><button class="suggestion" onclick="addSuggestion('pan','Align with distribution')">Align with distribution</button></div><div id="panActions"></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>5. AI REPLY DRIVER</h2>
+    <p style="margin:0 0 12px;font-size:12px;color:var(--muted)">One ask, one date. The instruction is designed to be pasted into AI and placed directly after the opening sentence.</p>
+    <div class="reply-fields">
+      <div><label>Primary ask</label><input id="primaryAsk" placeholder="e.g. Please confirm the annual volume forecast."></div>
+      <div><label>Reply by</label><input id="replyBy" type="date"></div>
+    </div>
+    <div class="prompt-card">
+      <div class="prompt-card-head"><span class="prompt-card-title">AI prompt preview</span><button class="btn primary" onclick="copyAiPrompt()" title="Copy AI prompt" aria-label="Copy AI prompt">⧉</button></div>
+      <pre id="aiPromptPreview" class="prompt-preview"></pre>
+    </div>
+  </div>
+
+  <div class="bottom"><button class="btn primary generate" onclick="render()">✉ Generate / Refresh Email</button></div>
+</section>
+
+<section class="preview">
+  <div class="toolbar">
+    <div class="tabs"><button id="enTab" class="tab active" onclick="setLang('en')">English</button><button id="deTab" class="tab" onclick="setLang('de')">German</button></div>
+    <div class="tools"><button class="btn" onclick="copyEmail()">▣ Copy Email</button><button class="btn primary" onclick="openMail()">↗ Open in Outlook</button></div>
+  </div>
+  <div id="emailPreview" class="email"></div>
+</section>
+</div>
+<div id="toast" class="toast">Copied to clipboard</div>
+
+<script>
+let lang='en', attachments=[], pan=[], cust=[];
+
+function fmtDate(v){
+  if(!v) return 'DATE';
+  const d=new Date(v+'T12:00:00');
+  return lang==='de' ? d.toLocaleDateString('de-DE') : d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function addAttachment(v=''){
+  attachments.push(v || 'Meeting material / presentation');
+  render();
+}
+function removeAttachment(i){attachments.splice(i,1);render()}
+function addAction(type,v=''){
+  (type==='pan'?pan:cust).push({text:v,deadline:''});
+  render();
+}
+function addSuggestion(type,text){addAction(type,text)}
+function addActionAfter(type,index){
+  const actions=type==='pan'?pan:cust;
+  actions.splice(index+1,0,{text:'',deadline:''});
+  render();
+  requestAnimationFrame(()=>{
+    const inputs=document.querySelectorAll(`#${type==='pan'?'panActions':'custActions'} .action-text`);
+    inputs[index+1]?.focus();
+  });
+}
+function handleActionKeydown(event,type,index){
+  if(event.key==='Enter'){
+    event.preventDefault();
+    addActionAfter(type,index);
+  }
+}
+function removeAction(type,i){(type==='pan'?pan:cust).splice(i,1);render()}
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function recipients(){
+  const v=document.getElementById('recipients').value.trim();
+  if(!v)return ['XXX'];
+  return v.split(/[,\n]+/).map(x=>x.trim()).filter(Boolean);
+}
+function actionHTML(arr,type){
+  return arr.map((x,i)=>`<div class="action"><input class="action-text" value="${esc(x.text)}" placeholder="${type==='pan'?'What we will do':'Customer next step'}" oninput="${type}[${i}].text=this.value" onkeydown="handleActionKeydown(event,'${type}',${i})"><input type="date" value="${esc(x.deadline)}" aria-label="Deadline" onchange="${type}[${i}].deadline=this.value"><button class="btn danger" onclick="removeAction('${type}',${i})">×</button></div>`).join('');
+}
+function attachHTML(){
+  return attachments.map((x,i)=>`<span class="chip">📎 <input style="border:0;background:transparent;width:130px;padding:0" value="${esc(x)}" oninput="attachments[${i}]=this.value"><button onclick="removeAttachment(${i})">×</button></span>`).join('');
+}
+function setLang(l){lang=l;document.getElementById('enTab').classList.toggle('active',l==='en');document.getElementById('deTab').classList.toggle('active',l==='de');render()}
+function render(){
+  document.getElementById('attachments').innerHTML=attachHTML();
+  document.getElementById('panActions').innerHTML=actionHTML(pan,'pan');
+  document.getElementById('custActions').innerHTML=actionHTML(cust,'cust');
+
+  const date=fmtDate(document.getElementById('date').value);
+  const loc=document.getElementById('location').value.trim();
+  const isTeams=document.getElementById('teams').checked, hasActions=pan.some(x=>x.text.trim())||cust.some(x=>x.text.trim()), hasAtt=attachments.some(x=>x.trim());
+  const names=recipients();
+  const customer=document.getElementById('customerName').value.trim() || 'CUSTOMER';
+  const distributor=document.getElementById('distributor').value.trim();
+  const subject=`Follow-up: Panasonic${distributor?' & '+distributor:''} x ${customer} on ${date}`;
+  let body;
+  if(lang==='en'){
+    let intro=isTeams
+      ? `Thank you very much for your time and the valuable insights during our Teams meeting on ${date}.` 
+      : `Thank you very much for your time and hospitality during our meeting${loc?' at '+esc(loc):''}${date!=='DATE'?' on '+date:''}.`;
+    body=`<p>${names.map(n=>`Dear ${esc(n)},`).join('<br>')}</p><p>${intro}${replyDriverText('en')}</p>`;
+    const validAttachments=attachments.filter(x=>x.trim());
+    if(hasAtt) body+=validAttachments.length===1
+      ? `<p>Please find our presentation attached.</p>`
+      : `<p><strong>Please find attached the following material:</strong></p><ul class="attach-list">${validAttachments.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+    if(hasActions) body+=`<p><strong>As discussed, we noted the following shared action points:</strong></p>${actionTable('Your next steps','We will')}`;
+    body+=`<p>It was a pleasure speaking with you. We look forward to continuing the conversation and moving the next steps forward together.</p><p>Please feel free to get in touch if you would like to discuss anything further.</p>`;
+  }else{
+    let intro=isTeams
+      ? `Vielen Dank für Ihre Zeit und die wertvollen Einblicke während unseres Teams-Termins${date!=='DATE'?' am '+date:''}.`
+      : `Vielen Dank für Ihre Zeit und die angenehme Zusammenarbeit während unseres Termins${loc?' in '+esc(loc):''}${date!=='DATE'?' am '+date:''}.`;
+    body=`<p>${names.map(n=>`Guten Tag ${esc(n)},`).join('<br>')}</p><p>${intro}${replyDriverText('de')}</p>`;
+    if(hasAtt) body+=`<p><strong>Anbei finden Sie die folgenden Unterlagen:</strong></p><ul class="attach-list">${attachments.filter(x=>x.trim()).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+    if(hasActions) body+=`<p><strong>Wie besprochen, haben wir folgende gemeinsame Punkte festgehalten:</strong></p>${actionTable('Ihre nächsten Schritte','Wir werden')}`;
+    body+=`<p>Es hat uns sehr gefreut, mit Ihnen zu sprechen. Wir freuen uns darauf, den Austausch fortzusetzen und die nächsten Schritte gemeinsam voranzubringen.</p><p>Melden Sie sich gerne jederzeit, wenn Sie noch etwas weiter besprechen möchten.</p>`;
+  }
+  body+=`<div class="tip">💡 ${lang==='en'?'BDM tip: Keep the customer action list short and make the requested response explicit. This improves scanability and response rate.':'BDM-Tipp: Halten Sie die Kundenaufgaben kurz und formulieren Sie die gewünschte Rückmeldung klar. Das verbessert Übersichtlichkeit und Rücklauf.'}</div>`;
+  const preview=`<div class="subject">${esc(subject)}</div>${body}`;
+  document.getElementById('emailPreview').innerHTML=`<div style="font-family:Aptos,Arial,sans-serif;font-size:11pt;line-height:1.6;color:#17212b">${preview.replace(/\b(DATE|CUSTOMER|XXX)\b/g,'<span class="placeholder">$1</span>')}</div>`;
+  document.getElementById('aiPromptPreview').textContent=aiPrompt();
+}
+function listItems(arr){
+  const valid=arr.filter(x=>x.text.trim());
+  return valid.length?`<ol style="margin:0;padding-left:20px">${valid.map(x=>`<li>${esc(x.text)}${x.deadline?` <span style="color:#657482">(by ${fmtActionDate(x.deadline)})</span>`:''}</li>`).join('')}</ol>`:`<span style="color:#8a969f">—</span>`;
+}
+function actionTable(customerHeading,panasonicHeading){
+  return `<table class="table" style="width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:11pt"><tr><th style="background:#3e8d59;color:#ffffff;padding:9px;text-align:left">${customerHeading}</th><th style="background:#073d70;color:#ffffff;padding:9px;text-align:left">${panasonicHeading}</th></tr><tr><td style="border:1px solid #dbe3e9;padding:8px;vertical-align:top;background:#f5fbf6">${listItems(cust)}</td><td style="border:1px solid #dbe3e9;padding:8px;vertical-align:top">${listItems(pan)}</td></tr></table>`;
+}
+function fmtActionDate(v){
+  const d=new Date(v+'T12:00:00');
+  return lang==='de' ? d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'}) : d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+}
+function replyDriverText(language){
+  const ask=document.getElementById('primaryAsk').value.trim();
+  const by=document.getElementById('replyBy').value;
+  if(!ask && !by)return '';
+  const dateText=by?fmtActionDate(by):'';
+  const temperature='concise';
+  if(language==='de'){
+    if(temperature==='concise') return ` Bitte bestätigen Sie ${esc(ask||'die oben genannten Punkte')}${dateText?' bis '+dateText:''}.`;
+    return ` Wenn es für Sie passt, würden wir uns freuen, wenn Sie ${esc(ask||'die oben genannten Punkte')}${dateText?' bis '+dateText:''} bestätigen könnten.`;
+  }
+  if(temperature==='concise') return ` Please confirm ${esc(ask||'the points above')}${dateText?' by '+dateText:''}.`;
+  return ` When you have a moment, could you please confirm ${esc(ask||'the points above')}${dateText?' by '+dateText:''}?`;
+}
+function aiPrompt(){
+  const ask=document.getElementById('primaryAsk').value.trim() || '[add the primary ask]';
+  const by=document.getElementById('replyBy').value;
+  return `Formulate a reply driver for a follow-up email. One ask, one date. Place it directly after the opening sentence.\n\nPrimary ask: ${ask}${by?`\nReply by: ${fmtActionDate(by)}`:''}\nTemperature: Concise — highest reply rate`;
+}
+async function copyAiPrompt(){
+  await navigator.clipboard.writeText(aiPrompt());
+  const t=document.getElementById('toast');t.textContent='AI prompt copied';t.style.display='block';setTimeout(()=>{t.style.display='none';t.textContent='Copied to clipboard'},1600);
+}
+function plainText(){
+  const el=document.getElementById('emailPreview').cloneNode(true);
+  el.querySelectorAll('.tip,.subject').forEach(x=>x.remove());
+  return el.innerText.replace(/\n{3,}/g,'\n\n').trim();
+}
+async function copyEmail(){
+  const el=document.getElementById('emailPreview').cloneNode(true);
+  el.querySelectorAll('.tip,.subject').forEach(x=>x.remove());
+  const html=el.innerHTML;
+  const text=plainText();
+  if(navigator.clipboard?.write && window.ClipboardItem){
+    await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([text],{type:'text/plain'})})]);
+  }else{
+    await navigator.clipboard.writeText(text);
+  }
+  const t=document.getElementById('toast');t.style.display='block';setTimeout(()=>t.style.display='none',1600);
+}
+function openMail(){
+  const subject=document.querySelector('.subject').innerText;
+  const body=plainText();
+  const to=document.getElementById('recipients').value.split(/[,\n]+/).map(x=>x.trim()).filter(Boolean).join(';');
+  window.location.href=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+document.querySelectorAll('input,textarea,select').forEach(e=>e.addEventListener('input',render));
+document.getElementById('date').value=new Date().toISOString().slice(0,10);
+addAttachment('Presentation / meeting material');
+addAction('pan','');
+addAction('cust','');
+render();
+</script>
+</body>
+</html>
