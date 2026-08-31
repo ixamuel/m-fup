@@ -205,7 +205,7 @@ function render(){
   const names=recipients();
   const customer=document.getElementById('customerName').value.trim() || 'CUSTOMER';
   const distributor=document.getElementById('distributor').value.trim();
-  const subjectPrefix=distributor?`Panasonic (x ${distributor})`:'Panasonic';
+  const subjectPrefix=distributor?`Panasonic x ${distributor}`:'Panasonic';
   const subject=`${subjectPrefix} - Meeting Follow Up - ${customer} ${lang==='de'?'am':'on'} ${fmtSubjectDate(document.getElementById('date').value)}`;
   let body;
   if(lang==='en'){
