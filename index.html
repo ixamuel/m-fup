@@ -109,8 +109,8 @@ input,select,textarea{background:rgba(255,255,255,.74);border-color:rgba(201,216
   <div class="section">
     <h2>4. ACTION POINTS</h2>
     <div class="actions">
-      <div><div class="rowhead"><label>Your next steps</label><button class="btn" onclick="addAction('cust')">＋</button></div><div class="suggestions"><button class="suggestion" onclick="addSuggestion('cust','Share current BOM / AVL')">Share current BOM / AVL</button><button class="suggestion" onclick="addSuggestion('cust','Confirm annual volume')">Confirm annual volume</button><button class="suggestion" onclick="addSuggestion('cust','Confirm sample quantity and ship-to')">Confirm sample qty and ship-to</button><button class="suggestion" onclick="addSuggestion('cust','Introduce the design owner')">Introduce the design owner</button><button class="suggestion" onclick="addSuggestion('cust','Share RFQ timeline')">Share RFQ timeline</button><button class="suggestion" onclick="addSuggestion('cust','Propose two slots for the next meeting')">Propose two meeting slots</button></div><div id="custActions"></div></div>
-      <div><div class="rowhead"><label>We will</label><button class="btn" onclick="addAction('pan')">＋</button></div><div class="suggestions"><button class="suggestion" onclick="addSuggestion('pan','Send datasheet and application note')">Send datasheet &amp; application note</button><button class="suggestion" onclick="addSuggestion('pan','Check lead time and MOQ')">Check lead time and MOQ</button><button class="suggestion" onclick="addSuggestion('pan','Prepare quotation')">Prepare quotation</button><button class="suggestion" onclick="addSuggestion('pan','Share sample options')">Share sample options</button><button class="suggestion" onclick="addSuggestion('pan','Send AEC-Q / qualification pack')">Send AEC-Q / qualification pack</button><button class="suggestion" onclick="addSuggestion('pan','Align with distribution')">Align with distribution</button></div><div id="panActions"></div></div>
+      <div><div class="rowhead"><label id="panHeading">Panasonic will</label><button class="btn" onclick="addAction('pan')">＋</button></div><div class="suggestions"><button class="suggestion" onclick="addSuggestion('pan','Send datasheet and application note')">Send datasheet &amp; application note</button><button class="suggestion" onclick="addSuggestion('pan','Check lead time and MOQ')">Check lead time and MOQ</button><button class="suggestion" onclick="addSuggestion('pan','Prepare quotation')">Prepare quotation</button><button class="suggestion" onclick="addSuggestion('pan','Share sample options')">Share sample options</button><button class="suggestion" onclick="addSuggestion('pan','Send AEC-Q / qualification pack')">Send AEC-Q / qualification pack</button><button class="suggestion" onclick="addSuggestion('pan','Align with distribution')">Align with distribution</button></div><div id="panActions"></div></div>
+      <div><div class="rowhead"><label id="custHeading">Could you please</label><button class="btn" onclick="addAction('cust')">＋</button></div><div class="suggestions"><button class="suggestion" onclick="addSuggestion('cust','Share current BOM / AVL')">Share current BOM / AVL</button><button class="suggestion" onclick="addSuggestion('cust','Confirm annual volume')">Confirm annual volume</button><button class="suggestion" onclick="addSuggestion('cust','Confirm sample quantity and ship-to')">Confirm sample qty and ship-to</button><button class="suggestion" onclick="addSuggestion('cust','Introduce the design owner')">Introduce the design owner</button><button class="suggestion" onclick="addSuggestion('cust','Share RFQ timeline')">Share RFQ timeline</button><button class="suggestion" onclick="addSuggestion('cust','Propose two slots for the next meeting')">Propose two meeting slots</button></div><div id="custActions"></div></div>
     </div>
   </div>
 
@@ -147,6 +147,11 @@ function fmtDate(v){
   if(!v) return 'DATE';
   const d=new Date(v+'T12:00:00');
   return lang==='de' ? d.toLocaleDateString('de-DE') : d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function fmtSubjectDate(v){
+  if(!v) return 'DATE';
+  const d=new Date(v+'T12:00:00');
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 }
 function addAttachment(v=''){
   attachments.push(v || 'Meeting material / presentation');
@@ -188,6 +193,8 @@ function attachHTML(){
 }
 function setLang(l){lang=l;document.getElementById('enTab').classList.toggle('active',l==='en');document.getElementById('deTab').classList.toggle('active',l==='de');render()}
 function render(){
+  document.getElementById('panHeading').textContent=lang==='de'?'Panasonic wird':'Panasonic will';
+  document.getElementById('custHeading').textContent=lang==='de'?'Könnten Sie bitte':'Could you please';
   document.getElementById('attachments').innerHTML=attachHTML();
   document.getElementById('panActions').innerHTML=actionHTML(pan,'pan');
   document.getElementById('custActions').innerHTML=actionHTML(cust,'cust');
@@ -198,7 +205,7 @@ function render(){
   const names=recipients();
   const customer=document.getElementById('customerName').value.trim() || 'CUSTOMER';
   const distributor=document.getElementById('distributor').value.trim();
-  const subject=`Follow-up: Panasonic${distributor?' & '+distributor:''} x ${customer} on ${date}`;
+  const subject=`Panasonic - Meeting Follow Up - ${customer} ${lang==='de'?'am':'on'} ${fmtSubjectDate(document.getElementById('date').value)}`;
   let body;
   if(lang==='en'){
     let intro=isTeams
@@ -209,7 +216,7 @@ function render(){
     if(hasAtt) body+=validAttachments.length===1
       ? `<p>Please find our presentation attached.</p>`
       : `<p><strong>Please find attached the following material:</strong></p><ul class="attach-list">${validAttachments.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
-    if(hasActions) body+=`<p><strong>As discussed, we noted the following shared action points:</strong></p>${actionTable('Your next steps','We will')}`;
+    if(hasActions) body+=`<p><strong>As discussed, we noted the following shared action points:</strong></p>${actionTable('Could you please','Panasonic will')}`;
     body+=`<p>It was a pleasure speaking with you. We look forward to continuing the conversation and moving the next steps forward together.</p><p>Please feel free to get in touch if you would like to discuss anything further.</p>`;
   }else{
     let intro=isTeams
@@ -217,7 +224,7 @@ function render(){
       : `Vielen Dank für Ihre Zeit und die angenehme Zusammenarbeit während unseres Termins${loc?' in '+esc(loc):''}${date!=='DATE'?' am '+date:''}.`;
     body=`<p>${names.map(n=>`Guten Tag ${esc(n)},`).join('<br>')}</p><p>${intro}${replyDriverText('de')}</p>`;
     if(hasAtt) body+=`<p><strong>Anbei finden Sie die folgenden Unterlagen:</strong></p><ul class="attach-list">${attachments.filter(x=>x.trim()).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
-    if(hasActions) body+=`<p><strong>Wie besprochen, haben wir folgende gemeinsame Punkte festgehalten:</strong></p>${actionTable('Ihre nächsten Schritte','Wir werden')}`;
+    if(hasActions) body+=`<p><strong>Wie besprochen, haben wir folgende gemeinsame Punkte festgehalten:</strong></p>${actionTable('Könnten Sie bitte','Panasonic wird')}`;
     body+=`<p>Es hat uns sehr gefreut, mit Ihnen zu sprechen. Wir freuen uns darauf, den Austausch fortzusetzen und die nächsten Schritte gemeinsam voranzubringen.</p><p>Melden Sie sich gerne jederzeit, wenn Sie noch etwas weiter besprechen möchten.</p>`;
   }
   body+=`<div class="tip">💡 ${lang==='en'?'BDM tip: Keep the customer action list short and make the requested response explicit. This improves scanability and response rate.':'BDM-Tipp: Halten Sie die Kundenaufgaben kurz und formulieren Sie die gewünschte Rückmeldung klar. Das verbessert Übersichtlichkeit und Rücklauf.'}</div>`;
@@ -230,7 +237,7 @@ function listItems(arr){
   return valid.length?`<ol style="margin:0;padding-left:20px">${valid.map(x=>`<li>${esc(x.text)}${x.deadline?` <span style="color:#657482">(by ${fmtActionDate(x.deadline)})</span>`:''}</li>`).join('')}</ol>`:`<span style="color:#8a969f">—</span>`;
 }
 function actionTable(customerHeading,panasonicHeading){
-  return `<table class="table" style="width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:11pt"><tr><th style="background:#3e8d59;color:#ffffff;padding:9px;text-align:left">${customerHeading}</th><th style="background:#073d70;color:#ffffff;padding:9px;text-align:left">${panasonicHeading}</th></tr><tr><td style="border:1px solid #dbe3e9;padding:8px;vertical-align:top;background:#f5fbf6">${listItems(cust)}</td><td style="border:1px solid #dbe3e9;padding:8px;vertical-align:top">${listItems(pan)}</td></tr></table>`;
+  return `<table class="table" style="width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:11pt"><tr><th style="background:#073d70;color:#ffffff;padding:9px;text-align:left">${panasonicHeading}</th><th style="background:#3e8d59;color:#ffffff;padding:9px;text-align:left">${customerHeading}</th></tr><tr><td style="border:1px solid #dbe3e9;padding:8px;vertical-align:top">${listItems(pan)}</td><td style="border:1px solid #dbe3e9;padding:8px;vertical-align:top;background:#f5fbf6">${listItems(cust)}</td></tr></table>`;
 }
 function fmtActionDate(v){
   const d=new Date(v+'T12:00:00');
