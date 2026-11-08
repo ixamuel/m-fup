@@ -69,6 +69,7 @@ input,select,textarea{background:rgba(255,255,255,.74);border-color:rgba(201,216
 .preview{background:rgba(255,255,255,.7);border-color:rgba(255,255,255,.9);box-shadow:0 14px 34px #174c7617;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .toolbar{background:rgba(255,255,255,.64);border-color:rgba(216,228,237,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 .tabs{background:rgba(241,247,251,.78);border-color:rgba(211,225,235,.9)}.suggestion,.chip{background:rgba(249,252,254,.7)}.prompt-card{background:rgba(239,248,253,.68)}.prompt-preview{background:rgba(255,255,255,.72)}.tip{background:rgba(239,248,253,.72)}
+.chip{display:inline-flex;align-items:center;gap:4px;max-width:100%}.chip .attachment-name{width:auto;min-width:6ch;max-width:min(240px,calc(100vw - 150px));min-height:18px;height:18px;line-height:1.35;flex:0 1 auto;resize:none;overflow:hidden;overflow-wrap:anywhere;white-space:pre-wrap;border:0;background:transparent;padding:0;box-shadow:none}.chip .attachment-name:focus{box-shadow:0 1px 0 #3987c5}.chip button{flex:none;padding:2px 4px;margin:0}.chip .drag-handle{color:#71808e;user-select:none;cursor:grab}.chip .drag-handle:active{cursor:grabbing}.email[contenteditable="true"]:focus{outline:2px solid #3987c533;outline-offset:-2px}.email [contenteditable="false"]{user-select:none}
 @media(max-width:950px){.app{grid-template-columns:1fr}.preview{min-height:auto}.grid3{grid-template-columns:1fr}.email{padding:22px}.toolbar{flex-wrap:wrap;gap:10px}.actions,.reply-fields{grid-template-columns:1fr}}
 </style>
 </head>
@@ -127,7 +128,7 @@ input,select,textarea{background:rgba(255,255,255,.74);border-color:rgba(201,216
     </div>
   </div>
 
-  <div class="bottom"><button class="btn primary generate" onclick="render()">✉ Generate / Refresh Email</button></div>
+  <div class="bottom"><button class="btn primary generate" onclick="refreshEmail()">✉ Generate / Refresh Email</button></div>
 </section>
 
 <section class="preview">
@@ -135,7 +136,7 @@ input,select,textarea{background:rgba(255,255,255,.74);border-color:rgba(201,216
     <div class="tabs"><button id="enTab" class="tab active" onclick="setLang('en')">English</button><button id="deTab" class="tab" onclick="setLang('de')">German</button></div>
     <div class="tools"><button class="btn" onclick="copyEmail()">▣ Copy Email</button><button class="btn primary" onclick="openMail()">↗ Open in Outlook</button></div>
   </div>
-  <div id="emailPreview" class="email"></div>
+  <div id="emailPreview" class="email" contenteditable="true" spellcheck="true" aria-label="Editable email preview"></div>
 </section>
 </div>
 <div id="toast" class="toast">Copied to clipboard</div>
@@ -158,6 +159,35 @@ function addAttachment(v=''){
   render();
 }
 function removeAttachment(i){attachments.splice(i,1);render()}
+function resizeAttachmentInput(input){
+  const canvas=document.createElement('canvas');
+  const context=canvas.getContext('2d');
+  if(!context)return;
+  context.font=getComputedStyle(input).font;
+  const longestLine=input.value.split('\n').reduce((longest,line)=>line.length>longest.length?line:longest,' ');
+  input.style.width=`${Math.min(240,Math.max(80,Math.ceil(context.measureText(longestLine).width+8)))}px`;
+  input.style.height='18px';
+  input.style.height=`${Math.max(18,input.scrollHeight)}px`;
+}
+function moveAttachment(from,to){
+  if(from<0||from>=attachments.length||to<0||to>=attachments.length||from===to)return;
+  attachments.splice(to,0,attachments.splice(from,1)[0]);
+  render();
+}
+function dragAttachment(event,index){
+  event.dataTransfer.effectAllowed='move';
+  event.dataTransfer.setData('text/plain',String(index));
+}
+function dropAttachment(event,index){
+  event.preventDefault();
+  const from=Number(event.dataTransfer.getData('text/plain'));
+  if(Number.isInteger(from))moveAttachment(from,index);
+}
+function setAttachmentName(input,index){
+  attachments[index]=input.value;
+  resizeAttachmentInput(input);
+  render();
+}
 function addAction(type,v=''){
   (type==='pan'?pan:cust).push({text:v,deadline:''});
   render();
@@ -189,13 +219,23 @@ function actionHTML(arr,type){
   return arr.map((x,i)=>`<div class="action"><input class="action-text" value="${esc(x.text)}" placeholder="${type==='pan'?'What we will do':'Customer next step'}" oninput="${type}[${i}].text=this.value" onkeydown="handleActionKeydown(event,'${type}',${i})"><input type="date" value="${esc(x.deadline)}" aria-label="Deadline" onchange="${type}[${i}].deadline=this.value"><button class="btn danger" onclick="removeAction('${type}',${i})">×</button></div>`).join('');
 }
 function attachHTML(){
-  return attachments.map((x,i)=>`<span class="chip">📎 <input style="border:0;background:transparent;width:130px;padding:0" value="${esc(x)}" oninput="attachments[${i}]=this.value"><button onclick="removeAttachment(${i})">×</button></span>`).join('');
+  return attachments.map((x,i)=>`<span class="chip" ondragover="event.preventDefault()" ondrop="dropAttachment(event,${i})"><span class="drag-handle" draggable="true" ondragstart="dragAttachment(event,${i})" aria-hidden="true" title="Drag to reorder">⠿</span><span aria-hidden="true">📎</span><textarea class="attachment-name" aria-label="Material name" rows="1" oninput="setAttachmentName(this,${i})">${esc(x)}</textarea><button type="button" aria-label="Remove material" title="Remove" onclick="removeAttachment(${i})">×</button></span>`).join('');
 }
-function setLang(l){lang=l;document.getElementById('enTab').classList.toggle('active',l==='en');document.getElementById('deTab').classList.toggle('active',l==='de');render()}
+function setLang(l){
+  if(l===lang)return;
+  lang=l;
+  document.getElementById('enTab').classList.toggle('active',l==='en');
+  document.getElementById('deTab').classList.toggle('active',l==='de');
+  render();
+}
+function refreshEmail(){render()}
 function render(){
   document.getElementById('panHeading').textContent=lang==='de'?'Panasonic wird':'Panasonic will';
   document.getElementById('custHeading').textContent=lang==='de'?'Könnten Sie bitte':'Could you please';
-  document.getElementById('attachments').innerHTML=attachHTML();
+  if(!document.activeElement.classList.contains('attachment-name')){
+    document.getElementById('attachments').innerHTML=attachHTML();
+    document.querySelectorAll('.attachment-name').forEach(resizeAttachmentInput);
+  }
   document.getElementById('panActions').innerHTML=actionHTML(pan,'pan');
   document.getElementById('custActions').innerHTML=actionHTML(cust,'cust');
 
@@ -215,20 +255,20 @@ function render(){
     body=`<p>${names.map(n=>`Dear ${esc(n)},`).join('<br>')}</p><p>${intro}${replyDriverText('en')}</p>`;
     const validAttachments=attachments.filter(x=>x.trim());
     if(hasAtt) body+=validAttachments.length===1
-      ? `<p>Please find our presentation attached.</p>`
+      ? `<p>Please find the attached ${esc(validAttachments[0])}.</p>`
       : `<p><strong>Please find attached the following material:</strong></p><ul class="attach-list">${validAttachments.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
     if(hasActions) body+=`<p><strong>As discussed, we noted the following shared action points:</strong></p>${actionTable('Could you please','Panasonic will')}`;
     body+=`<p>It was a pleasure speaking with you. We look forward to continuing the conversation and moving the next steps forward together.</p><p>Please feel free to get in touch if you would like to discuss anything further.</p>`;
   }else{
     let intro=isTeams
       ? `Vielen Dank für Ihre Zeit und die wertvollen Einblicke während unseres Teams-Termins${date!=='DATE'?' am '+date:''}.`
-      : `Vielen Dank für Ihre Zeit und die angenehme Zusammenarbeit während unseres Termins${loc?' in '+esc(loc):''}${date!=='DATE'?' am '+date:''}.`;
+      : `Nochmals vielen Dank für Ihre Zeit und das angenehme Meeting während unseres Termins${loc?' in '+esc(loc):''}${date!=='DATE'?' am '+date:''}.`;
     body=`<p>${names.map(n=>`Guten Tag ${esc(n)},`).join('<br>')}</p><p>${intro}${replyDriverText('de')}</p>`;
     if(hasAtt) body+=`<p><strong>Anbei finden Sie die folgenden Unterlagen:</strong></p><ul class="attach-list">${attachments.filter(x=>x.trim()).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
     if(hasActions) body+=`<p><strong>Wie besprochen, haben wir folgende gemeinsame Punkte festgehalten:</strong></p>${actionTable('Könnten Sie bitte','Panasonic wird')}`;
     body+=`<p>Es hat uns sehr gefreut, mit Ihnen zu sprechen. Wir freuen uns darauf, den Austausch fortzusetzen und die nächsten Schritte gemeinsam voranzubringen.</p><p>Melden Sie sich gerne jederzeit, wenn Sie noch etwas weiter besprechen möchten.</p>`;
   }
-  body+=`<div class="tip">💡 ${lang==='en'?'BDM tip: Keep the customer action list short and make the requested response explicit. This improves scanability and response rate.':'BDM-Tipp: Halten Sie die Kundenaufgaben kurz und formulieren Sie die gewünschte Rückmeldung klar. Das verbessert Übersichtlichkeit und Rücklauf.'}</div>`;
+  body+=`<div class="tip" contenteditable="false">💡 ${lang==='en'?'BDM tip: Keep the customer action list short and make the requested response explicit. This improves scanability and response rate.':'BDM-Tipp: Halten Sie die Kundenaufgaben kurz und formulieren Sie die gewünschte Rückmeldung klar. Das verbessert Übersichtlichkeit und Rücklauf.'}</div>`;
   const preview=`<div class="subject">${esc(subject)}</div>${body}`;
   document.getElementById('emailPreview').innerHTML=`<div style="font-family:Aptos,Arial,sans-serif;font-size:11pt;line-height:1.6;color:#17212b">${preview.replace(/\b(DATE|CUSTOMER|XXX)\b/g,'<span class="placeholder">$1</span>')}</div>`;
   document.getElementById('aiPromptPreview').textContent=aiPrompt();
