@@ -111,7 +111,7 @@ input,select,textarea{background:rgba(255,255,255,.74);border-color:rgba(201,216
     <h2>4. ACTION POINTS</h2>
     <div class="actions">
       <div><div class="rowhead"><label id="panHeading">Panasonic will</label><button class="btn" onclick="addAction('pan')">＋</button></div><div class="suggestions"><button class="suggestion" onclick="addSuggestion('pan','Send datasheet and application note')">Send datasheet &amp; application note</button><button class="suggestion" onclick="addSuggestion('pan','Check lead time and MOQ')">Check lead time and MOQ</button><button class="suggestion" onclick="addSuggestion('pan','Prepare quotation')">Prepare quotation</button><button class="suggestion" onclick="addSuggestion('pan','Share sample options')">Share sample options</button><button class="suggestion" onclick="addSuggestion('pan','Send AEC-Q / qualification pack')">Send AEC-Q / qualification pack</button><button class="suggestion" onclick="addSuggestion('pan','Align with distribution')">Align with distribution</button></div><div id="panActions"></div></div>
-      <div><div class="rowhead"><label id="custHeading">Could you please</label><button class="btn" onclick="addAction('cust')">＋</button></div><div class="suggestions"><button class="suggestion" onclick="addSuggestion('cust','Share current BOM / AVL')">Share current BOM / AVL</button><button class="suggestion" onclick="addSuggestion('cust','Confirm annual volume')">Confirm annual volume</button><button class="suggestion" onclick="addSuggestion('cust','Confirm sample quantity and ship-to')">Confirm sample qty and ship-to</button><button class="suggestion" onclick="addSuggestion('cust','Introduce the design owner')">Introduce the design owner</button><button class="suggestion" onclick="addSuggestion('cust','Share RFQ timeline')">Share RFQ timeline</button><button class="suggestion" onclick="addSuggestion('cust','Propose two slots for the next meeting')">Propose two meeting slots</button></div><div id="custActions"></div></div>
+      <div><div class="rowhead"><label id="custHeading">Could you please</label><button class="btn" onclick="addAction('cust')">＋</button></div><div class="suggestions"><button class="suggestion" onclick="addSuggestion('cust','Share current BOM / AVL')">Share current BOM / AVL</button><button class="suggestion" onclick="addSuggestion('cust','Confirm annual volume')">Confirm annual volume</button><button class="suggestion" onclick="addSuggestion('cust','Confirm sample quantity and ship-to')">Confirm sample qty and ship-to</button><button class="suggestion" onclick="addSuggestion('cust','Introduce the design owner')">Introduce the design owner</button><button class="suggestion" onclick="addSuggestion('cust','Share RFQ timeline')">Share RFQ timeline</button><button class="suggestion" onclick="addSuggestion('cust','Propose two slots for the next meeting')">Propose two meeting slots</button><button class="suggestion" onclick="addSuggestion('cust','For project')">For project</button></div><div id="custActions"></div></div>
     </div>
   </div>
 
@@ -258,7 +258,7 @@ function render(){
       ? `<p>Please find the attached ${esc(validAttachments[0])}.</p>`
       : `<p><strong>Please find attached the following material:</strong></p><ul class="attach-list">${validAttachments.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
     if(hasActions) body+=`<p><strong>As discussed, we noted the following shared action points:</strong></p>${actionTable('Could you please','Panasonic will')}`;
-    body+=`<p>It was a pleasure speaking with you. We look forward to continuing the conversation and moving the next steps forward together.</p><p>Please feel free to get in touch if you would like to discuss anything further.</p>`;
+    body+=`<p>We look forward to your feedback and the next steps.</p>`;
   }else{
     let intro=isTeams
       ? `Vielen Dank für Ihre Zeit und die wertvollen Einblicke während unseres Teams-Termins${date!=='DATE'?' am '+date:''}.`
@@ -266,7 +266,7 @@ function render(){
     body=`<p>${names.map(n=>`Guten Tag ${esc(n)},`).join('<br>')}</p><p>${intro}${replyDriverText('de')}</p>`;
     if(hasAtt) body+=`<p><strong>Anbei finden Sie die folgenden Unterlagen:</strong></p><ul class="attach-list">${attachments.filter(x=>x.trim()).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
     if(hasActions) body+=`<p><strong>Wie besprochen, haben wir folgende gemeinsame Punkte festgehalten:</strong></p>${actionTable('Könnten Sie bitte','Panasonic wird')}`;
-    body+=`<p>Es hat uns sehr gefreut, mit Ihnen zu sprechen. Wir freuen uns darauf, den Austausch fortzusetzen und die nächsten Schritte gemeinsam voranzubringen.</p><p>Melden Sie sich gerne jederzeit, wenn Sie noch etwas weiter besprechen möchten.</p>`;
+    body+=`<p>Wir freuen uns auf Ihre Rückmeldung und die nächsten gemeinsamen Schritte.</p>`;
   }
   body+=`<div class="tip" contenteditable="false">💡 ${lang==='en'?'BDM tip: Keep the customer action list short and make the requested response explicit. This improves scanability and response rate.':'BDM-Tipp: Halten Sie die Kundenaufgaben kurz und formulieren Sie die gewünschte Rückmeldung klar. Das verbessert Übersichtlichkeit und Rücklauf.'}</div>`;
   const preview=`<div class="subject">${esc(subject)}</div>${body}`;
